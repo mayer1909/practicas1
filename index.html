@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who Wants to Be a Millionaire? - 25 Questions English Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap');
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hexagon-btn {
+            position: relative;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #3b82f6;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+            opacity: 1 !important;
+        }
+
+        .hexagon-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+            border-color: #f59e0b;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .hexagon-btn.selected {
+            background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%) !important;
+            border-color: #ffffff !important;
+            color: #000 !important;
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.8) !important;
+        }
+
+        .hexagon-btn.correct {
+            background: linear-gradient(180deg, #10b981 0%, #047857 100%) !important;
+            border-color: #ffffff !important;
+            color: #fff !important;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.9) !important;
+            animation: pulse-green 1s infinite;
+        }
+
+        .hexagon-btn.wrong {
+            background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%) !important;
+            border-color: #ffffff !important;
+            color: #fff !important;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.9) !important;
+            animation: shake 0.5s;
+        }
+
+        .hexagon-btn.disabled-5050 {
+            opacity: 0.15 !important;
+            pointer-events: none !important;
+            border-color: #334155 !important;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .lifeline-btn {
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #3b82f6;
+            transition: all 0.3s ease;
+        }
+
+        .lifeline-btn:hover:not(:disabled) {
+            border-color: #f59e0b;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+            transform: scale(1.08);
+        }
+
+        .lifeline-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: #64748b;
+        }
+
+        .money-item {
+            transition: all 0.2s ease;
+        }
+
+        .money-item.active {
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+            color: #000;
+            font-weight: 800;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+            transform: scale(1.03);
+        }
+
+        .money-item.milestone {
+            color: #38bdf8;
+            font-weight: 700;
+        }
+
+        .money-item.completed {
+            color: #10b981;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between min-h-screen p-2 sm:p-4">
+
+    <!-- Top Navigation Bar -->
+    <header class="w-full max-w-6xl mx-auto flex flex-wrap justify-between items-center p-3 mb-2 glass-panel rounded-2xl gap-2">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg border-2 border-amber-300">
+                $
+            </div>
+            <div>
+                <h1 class="text-lg font-black tracking-wider text-amber-400 leading-tight">MILLIONAIRE</h1>
+                <p class="text-xs text-slate-400 font-semibold">25 Preguntas - Repaso General de Inglés</p>
+            </div>
+        </div>
+
+        <!-- Lifelines -->
+        <div class="flex items-center space-x-3">
+            <button id="lifeline-5050" onclick="use5050()" class="lifeline-btn w-11 h-11 sm:w-12 sm:h-12 rounded-full flex flex-col items-center justify-center text-xs font-bold text-amber-400 shadow-md" title="50:50 (Elimina 2 incorrectas)">
+                <span>50:50</span>
+            </button>
+            <button id="lifeline-phone" onclick="usePhone()" class="lifeline-btn w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-blue-400 shadow-md text-base sm:text-lg" title="Llamada al Profesor">
+                <i class="fa-solid fa-phone"></i>
+            </button>
+            <button id="lifeline-audience" onclick="useAudience()" class="lifeline-btn w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-emerald-400 shadow-md text-base sm:text-lg" title="Ayuda del Público">
+                <i class="fa-solid fa-users"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-6xl mx-auto flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch my-2">
+
+        <!-- Question and Answers Area -->
+        <div class="lg:col-span-3 flex flex-col justify-between space-y-4">
+
+            <!-- Category & Timer Badge -->
+            <div class="flex justify-between items-center px-2">
+                <span id="category-badge" class="px-4 py-1.5 rounded-full bg-blue-900/60 border border-blue-500/40 text-blue-300 text-xs sm:text-sm font-bold tracking-wide uppercase shadow">
+                    Categoría: Weather
+                </span>
+                <span id="question-number" class="text-slate-400 text-xs sm:text-sm font-bold">
+                    Pregunta 1 de 25
+                </span>
+            </div>
+
+            <!-- Question Screen Box -->
+            <div class="glass-panel p-6 sm:p-8 rounded-3xl border-2 border-blue-600/30 text-center flex-1 flex flex-col justify-center items-center shadow-2xl relative min-h-[190px]">
+                <div class="text-amber-400 text-xs font-bold uppercase tracking-widest mb-2">Premio actual: <span id="current-value">$100</span></div>
+                <h2 id="question-text" class="text-lg sm:text-2xl font-extrabold text-white leading-snug max-w-2xl">
+                    Cargando pregunta...
+                </h2>
+                <p id="question-subtext" class="text-xs sm:text-sm text-slate-400 mt-2 italic font-medium">
+                    (Traducción / Pista)
+                </p>
+            </div>
+
+            <!-- Answer Options (2x2 Grid) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <button onclick="selectOption('A')" id="btn-A" class="hexagon-btn p-4 rounded-2xl flex items-center text-left text-sm sm:text-base font-semibold group">
+                    <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold flex items-center justify-center mr-3 group-hover:bg-amber-400 group-hover:text-black transition-colors">A</span>
+                    <span id="text-A" class="flex-1 text-slate-100">Option A</span>
+                </button>
+
+                <button onclick="selectOption('B')" id="btn-B" class="hexagon-btn p-4 rounded-2xl flex items-center text-left text-sm sm:text-base font-semibold group">
+                    <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold flex items-center justify-center mr-3 group-hover:bg-amber-400 group-hover:text-black transition-colors">B</span>
+                    <span id="text-B" class="flex-1 text-slate-100">Option B</span>
+                </button>
+
+                <button onclick="selectOption('C')" id="btn-C" class="hexagon-btn p-4 rounded-2xl flex items-center text-left text-sm sm:text-base font-semibold group">
+                    <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold flex items-center justify-center mr-3 group-hover:bg-amber-400 group-hover:text-black transition-colors">C</span>
+                    <span id="text-C" class="flex-1 text-slate-100">Option C</span>
+                </button>
+
+                <button onclick="selectOption('D')" id="btn-D" class="hexagon-btn p-4 rounded-2xl flex items-center text-left text-sm sm:text-base font-semibold group">
+                    <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold flex items-center justify-center mr-3 group-hover:bg-amber-400 group-hover:text-black transition-colors">D</span>
+                    <span id="text-D" class="flex-1 text-slate-100">Option D</span>
+                </button>
+            </div>
+
+            <!-- Action bar -->
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="walkAway()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-bold border border-slate-600 transition flex items-center gap-2">
+                    <i class="fa-solid fa-person-walking-arrow-right text-amber-400"></i>
+                    Retirarse con lo acumulado
+                </button>
+                <div id="feedback-msg" class="text-xs font-bold text-amber-400 hidden animate-pulse">
+                    ¡Comprobando respuesta!
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Money Tree Sidebar -->
+        <div class="glass-panel p-4 rounded-3xl border border-slate-700/50 flex flex-col justify-between hidden lg:flex max-h-[580px]">
+            <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest text-center mb-2">Premios (25 Niveles)</h3>
+            <div id="money-tree" class="flex flex-col-reverse space-y-reverse space-y-1 text-xs overflow-y-auto pr-1 custom-scroll flex-1">
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Lifeline Modal -->
+    <div id="lifeline-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="glass-panel max-w-md w-full p-6 rounded-3xl border-2 border-amber-500/50 text-center shadow-2xl relative">
+            <div id="modal-icon" class="text-4xl text-amber-400 mb-3">
+                <i class="fa-solid fa-lightbulb"></i>
+            </div>
+            <h3 id="modal-title" class="text-xl font-bold text-white mb-2">Ayuda</h3>
+            <div id="modal-body" class="text-sm text-slate-200 mb-6 bg-slate-900/60 p-4 rounded-2xl border border-slate-700/50 text-left space-y-2">
+            </div>
+            <button onclick="closeModal()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl transition shadow-lg">
+                ¡Entendido!
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Over / Win Modal -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black/90 backdrop-blur-lg flex items-center justify-center p-4 z-50 hidden">
+        <div class="glass-panel max-w-lg w-full p-8 rounded-3xl border-2 border-amber-400 text-center shadow-2xl relative">
+            <div id="end-icon" class="text-6xl text-amber-400 mb-4 animate-bounce">
+                🏆
+            </div>
+            <h2 id="end-title" class="text-2xl sm:text-3xl font-black text-white mb-2">¡NUEVO MILLONARIO!</h2>
+            <p id="end-subtitle" class="text-sm text-slate-300 mb-4">Has respondido correctamente las 25 preguntas de repaso de inglés.</p>
+            
+            <div class="bg-slate-900/80 p-4 rounded-2xl border border-amber-500/30 my-4">
+                <span class="text-xs text-slate-400 uppercase tracking-widest block mb-1">Premio Obtenido</span>
+                <span id="final-prize" class="text-3xl sm:text-4xl font-black text-amber-400">$1,000,000</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                <button onclick="restartGame()" class="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl transition shadow-lg">
+                    <i class="fa-solid fa-rotate-right mr-2"></i>Volver a Jugar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'select') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.15);
+                osc.frequency.setValueAtTime(783.99, now + 0.3);
+                osc.frequency.setValueAtTime(1046.50, now + 0.45);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+                osc.start(now);
+                osc.stop(now + 0.7);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(90, now + 0.4);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+        }
+
+        const ALL_25_QUESTIONS = [
+            // CATEGORY 1: Weather (1-5)
+            {
+                category: "Weather",
+                q: '1. How do you say "Hoy está lloviendo" in English?',
+                sub: '(¿Cómo se dice "Hoy está lloviendo" en inglés?)',
+                options: { A: "It is sunny today.", B: "It is raining today.", C: "It is cold today.", D: "It is cloudy today." },
+                correct: "B",
+                explanation: 'La traducción exacta para "Hoy está lloviendo" es "It is raining today".'
+            },
+            {
+                category: "Weather",
+                q: '2. Complete the sentence: "It is very ________ today, put on a coat!"',
+                sub: '(Completa la oración: "Está muy ________ hoy, ¡ponte un abrigo!")',
+                options: { A: "hot", B: "sunny", C: "cold", D: "warm" },
+                correct: "C",
+                explanation: 'Se usa "cold" (frío) porque la frase menciona ponerse un abrigo (coat).'
+            },
+            {
+                category: "Weather",
+                q: '3. Which word describes a day with many clouds in the sky?',
+                sub: '(¿Qué palabra describe un día con muchas nubes en el cielo?)',
+                options: { A: "Sunny", B: "Freezing", C: "Cloudy", D: "Rainy" },
+                correct: "C",
+                explanation: '"Cloudy" significa nublado (lleno de nubes).'
+            },
+            {
+                category: "Weather",
+                q: '4. Which word is associated with a bright, warm day with clear sky?',
+                sub: '(¿Qué palabra se asocia con un día brillante, cálido y de cielo despejado?)',
+                options: { A: "Rainy", B: "Sunny", C: "Snowy", D: "Freezing" },
+                correct: "B",
+                explanation: '"Sunny" significa soleado.'
+            },
+            {
+                category: "Weather",
+                q: '5. What\'s the weather like when it\'s freezing and white outside?',
+                sub: '(¿Cómo está el clima cuando está helando y todo está blanco afuera?)',
+                options: { A: "Rainy", B: "Sunny", C: "Snowy", D: "Hot" },
+                correct: "C",
+                explanation: '"Snowy" se refiere a un clima nevado.'
+            },
+
+            // CATEGORY 2: There is / There are (6-10)
+            {
+                category: "There is / There are",
+                q: '6. Which is the correct option: "________ a book on the table"?',
+                sub: '(¿Cuál es la opción correcta: "________ un libro sobre la mesa"?)',
+                options: { A: "There are", B: "Is there", C: "There is", D: "Are there" },
+                correct: "C",
+                explanation: 'Se utiliza "There is" para objetos singulares ("a book").'
+            },
+            {
+                category: "There is / There are",
+                q: '7. Complete the sentence: "________ three chairs in the kitchen."',
+                sub: '(Completa la oración: "________ tres sillas en la cocina.")',
+                options: { A: "There is", B: "There are", C: "Is there", D: "There isn\'t" },
+                correct: "B",
+                explanation: 'Se utiliza "There are" para plural ("three chairs").'
+            },
+            {
+                category: "There is / There are",
+                q: '8. How do you ask if there is a TV in the room?',
+                sub: '(¿Cómo preguntas si hay un televisor en la habitación?)',
+                options: { A: "There is a TV in the room?", B: "Are there a TV in the room?", C: "Is there a TV in the room?", D: "There are a TV in the room?" },
+                correct: "C",
+                explanation: 'La estructura interrogativa en singular es "Is there...?"'
+            },
+            {
+                category: "There is / There are",
+                q: '9. What is the correct negative form for "No hay manzanas en la mesa"?',
+                sub: '(¿Cuál es la forma negativa correcta para "No hay manzanas en la mesa"?)',
+                options: { A: "There isn't any apples on the table.", B: "There aren't any apples on the table.", C: "There is no apples on the table.", D: "There not apples on the table." },
+                correct: "B",
+                explanation: 'Para plural en negativo usamos "There aren\'t any..."'
+            },
+            {
+                category: "There is / There are",
+                q: '10. Complete the sentence: "________ two lamps in the living room."',
+                sub: '(Completa la oración: "________ dos lámparas en la sala.")',
+                options: { A: "There is", B: "There are", C: "Is there", D: "There isn\'t" },
+                correct: "B",
+                explanation: 'Para el plural "two lamps" usamos "There are".'
+            },
+
+            // CATEGORY 3: Prepositions of Place (11-15)
+            {
+                category: "Prepositions of Place",
+                q: '11. If the cat is under the bed, which preposition do you use?',
+                sub: '(Si el gato está debajo de la cama, ¿qué preposición usas?)',
+                options: { A: "On", B: "Under", C: "Behind", D: "Between" },
+                correct: "B",
+                explanation: '"Under" significa "debajo de".'
+            },
+            {
+                category: "Prepositions of Place",
+                q: '12. Complete: "The keys are ________ the drawer."',
+                sub: '(Completa: "Las llaves están ________ el cajón.")',
+                options: { A: "on", B: "in", C: "under", D: "between" },
+                correct: "B",
+                explanation: 'Usamos "in" cuando algo está dentro de un espacio o objeto.'
+            },
+            {
+                category: "Prepositions of Place",
+                q: '13. What does the preposition "behind" mean?',
+                sub: '(¿Qué significa la preposición "behind"?)',
+                options: { A: "Debajo de", B: "Encima de", C: "Detrás de", D: "Entre dos cosas" },
+                correct: "C",
+                explanation: '"Behind" traduce "detrás de".'
+            },
+            {
+                category: "Prepositions of Place",
+                q: '14. Complete: "The lamp is ________ the sofa and the armchair."',
+                sub: '(Completa: "La lámpara está ________ el sofá y el sillón.")',
+                options: { A: "under", B: "in", C: "between", D: "on" },
+                correct: "C",
+                explanation: '"Between" indica que un objeto está entre dos puntos o cosas.'
+            },
+            {
+                category: "Prepositions of Place",
+                q: '15. Complete: "The cat is sleeping ________ the sofa."',
+                sub: '(Completa: "El gato está durmiendo ________ el sofá.")',
+                options: { A: "under", B: "in", C: "on", D: "between" },
+                correct: "C",
+                explanation: 'Usamos "on" para indicar sobre / encima de una superficie.'
+            },
+
+            // CATEGORY 4: Parts of the House (16-20)
+            {
+                category: "Parts of the House",
+                q: '16. Where do you usually sleep in the house?',
+                sub: '(¿Dónde duermes usualmente en la casa?)',
+                options: { A: "Kitchen", B: "Bedroom", C: "Garage", D: "Bathroom" },
+                correct: "B",
+                explanation: '"Bedroom" es la habitación o dormitorio.'
+            },
+            {
+                category: "Parts of the House",
+                q: '17. What do you call the place where you cook food?',
+                sub: '(¿Cómo se llama el lugar donde cocinas la comida?)',
+                options: { A: "Kitchen", B: "Dining room", C: "Bathroom", D: "Garage" },
+                correct: "A",
+                explanation: '"Kitchen" significa cocina.'
+            },
+            {
+                category: "Parts of the House",
+                q: '18. Where do people park their car in a house?',
+                sub: '(¿Dónde estaciona la gente su carro en una casa?)',
+                options: { A: "Living room", B: "Garage", C: "Bedroom", D: "Dining room" },
+                correct: "B",
+                explanation: '"Garage" es el garaje de la casa.'
+            },
+            {
+                category: "Parts of the House",
+                q: '19. Which room is used for taking a shower and washing your hands?',
+                sub: '(¿Qué habitación se usa para ducharse y lavarse las manos?)',
+                options: { A: "Bedroom", B: "Bathroom", C: "Kitchen", D: "Living room" },
+                correct: "B",
+                explanation: '"Bathroom" es el cuarto de baño.'
+            },
+            {
+                category: "Parts of the House",
+                q: '20. Where do you eat dinner with your family?',
+                sub: '(¿Dónde cenas con tu familia?)',
+                options: { A: "Dining room", B: "Garage", C: "Bathroom", D: "Bedroom" },
+                correct: "A",
+                explanation: '"Dining room" significa comedor.'
+            },
+
+            // CATEGORY 5: Objects in the House (21-25)
+            {
+                category: "Objects in the House",
+                q: '21. How do you say "refrigerador / nevera" in English?',
+                sub: '(¿Cómo se dice "refrigerador / nevera" en inglés?)',
+                options: { A: "Mirror", B: "Refrigerator", C: "Pillow", D: "Toothbrush" },
+                correct: "B",
+                explanation: '"Refrigerator" es el refrigerador o nevera.'
+            },
+            {
+                category: "Objects in the House",
+                q: '22. Which object is usually in the living room for sitting multiple people?',
+                sub: '(¿Qué objeto está usualmente en la sala para sentar a varias personas?)',
+                options: { A: "Sofa", B: "Bed", C: "Mirror", D: "Shower" },
+                correct: "A",
+                explanation: '"Sofa" es el sofá de la sala.'
+            },
+            {
+                category: "Objects in the House",
+                q: '23. Complete: "I look at myself in the ________ in the bathroom."',
+                sub: '(Completa: "Me miro en el ________ en el baño.")',
+                options: { A: "mirror", B: "pillow", C: "sofa", D: "fridge" },
+                correct: "A",
+                explanation: '"Mirror" es el espejo.'
+            },
+            {
+                category: "Objects in the House",
+                q: '24. What object do you use on the bed to rest your head when sleeping?',
+                sub: '(¿Qué objeto usas en la cama para recostar la cabeza al dormir?)',
+                options: { A: "Toothbrush", B: "Pillow", C: "Lamp", D: "Mirror" },
+                correct: "B",
+                explanation: '"Pillow" es la almohada.'
+            },
+            {
+                category: "Objects in the House",
+                q: '25. What do you use to clean your teeth?',
+                sub: '(¿Qué usas para limpiarte los dientes?)',
+                options: { A: "Pillow", B: "Toothbrush", C: "Mirror", D: "Sofa" },
+                correct: "B",
+                explanation: '"Toothbrush" es el cepillo de dientes.'
+            }
+        ];
+
+        const PRIZE_LADDER = [
+            { level: 1, amount: "$100", guaranteed: false },
+            { level: 2, amount: "$200", guaranteed: false },
+            { level: 3, amount: "$300", guaranteed: false },
+            { level: 4, amount: "$500", guaranteed: false },
+            { level: 5, amount: "$1,000", guaranteed: true },
+            { level: 6, amount: "$2,000", guaranteed: false },
+            { level: 7, amount: "$3,000", guaranteed: false },
+            { level: 8, amount: "$5,000", guaranteed: false },
+            { level: 9, amount: "$8,000", guaranteed: false },
+            { level: 10, amount: "$15,000", guaranteed: true },
+            { level: 11, amount: "$25,000", guaranteed: false },
+            { level: 12, amount: "$40,000", guaranteed: false },
+            { level: 13, amount: "$60,000", guaranteed: false },
+            { level: 14, amount: "$85,000", guaranteed: false },
+            { level: 15, amount: "$100,000", guaranteed: true },
+            { level: 16, amount: "$150,000", guaranteed: false },
+            { level: 17, amount: "$225,000", guaranteed: false },
+            { level: 18, amount: "$325,000", guaranteed: false },
+            { level: 19, amount: "$450,000", guaranteed: false },
+            { level: 20, amount: "$600,000", guaranteed: true },
+            { level: 21, amount: "$700,000", guaranteed: false },
+            { level: 22, amount: "$800,000", guaranteed: false },
+            { level: 23, amount: "$900,000", guaranteed: false },
+            { level: 24, amount: "$950,000", guaranteed: false },
+            { level: 25, amount: "$1,000,000", guaranteed: true }
+        ];
+
+        let currentQuestionIndex = 0;
+        let selectedQuestions = [];
+        let usedLifelines = {
+            '5050': false,
+            'phone': false,
+            'audience': false
+        };
+        let canAnswer = true;
+
+        function initGame() {
+            selectedQuestions = [...ALL_25_QUESTIONS];
+            currentQuestionIndex = 0;
+            usedLifelines = { '5050': false, 'phone': false, 'audience': false };
+            
+            document.getElementById('lifeline-5050').disabled = false;
+            document.getElementById('lifeline-phone').disabled = false;
+            document.getElementById('lifeline-audience').disabled = false;
+
+            renderMoneyTree();
+            loadQuestion();
+        }
+
+        function renderMoneyTree() {
+            const container = document.getElementById('money-tree');
+            container.innerHTML = '';
+            
+            PRIZE_LADDER.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `money-item px-3 py-1 rounded-lg flex justify-between items-center text-xs ${item.guaranteed ? 'milestone text-blue-400' : 'text-slate-300'}`;
+                if (index === currentQuestionIndex) {
+                    div.classList.add('active');
+                } else if (index < currentQuestionIndex) {
+                    div.classList.add('completed');
+                }
+
+                div.innerHTML = `
+                    <span>Q${item.level}</span>
+                    <span>${item.amount}</span>
+                `;
+                container.appendChild(div);
+            });
+
+            const activeEl = container.querySelector('.active');
+            if (activeEl) {
+                activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function loadQuestion() {
+            canAnswer = true;
+            const qData = selectedQuestions[currentQuestionIndex];
+            const prize = PRIZE_LADDER[currentQuestionIndex].amount;
+
+            document.getElementById('category-badge').innerText = `Categoría: ${qData.category}`;
+            document.getElementById('question-number').innerText = `Pregunta ${currentQuestionIndex + 1} de 25`;
+            document.getElementById('current-value').innerText = prize;
+            document.getElementById('question-text').innerText = qData.q;
+            document.getElementById('question-subtext').innerText = qData.sub;
+
+            // RESET COMPLETO DE CADA BOTÓN DE OPCIÓN AL CARGAR NUEVA PREGUNTA
+            ['A', 'B', 'C', 'D'].forEach(letter => {
+                const btn = document.getElementById(`btn-${letter}`);
+                btn.className = 'hexagon-btn p-4 rounded-2xl flex items-center text-left text-sm sm:text-base font-semibold group';
+                btn.disabled = false;
+                btn.removeAttribute('style'); // Elimina cualquier opacidad inyectada previamente por JS
+                document.getElementById(`text-${letter}`).innerText = qData.options[letter];
+            });
+
+            renderMoneyTree();
+        }
+
+        function selectOption(letter) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            playSound('select');
+
+            const btn = document.getElementById(`btn-${letter}`);
+            btn.classList.add('selected');
+
+            document.getElementById('feedback-msg').classList.remove('hidden');
+
+            setTimeout(() => {
+                const qData = selectedQuestions[currentQuestionIndex];
+                document.getElementById('feedback-msg').classList.add('hidden');
+
+                if (letter === qData.correct) {
+                    playSound('correct');
+                    btn.classList.remove('selected');
+                    btn.classList.add('correct');
+
+                    setTimeout(() => {
+                        if (currentQuestionIndex === 24) {
+                            endGame(true, "$1,000,000");
+                        } else {
+                            currentQuestionIndex++;
+                            loadQuestion();
+                        }
+                    }, 1400);
+                } else {
+                    playSound('wrong');
+                    btn.classList.remove('selected');
+                    btn.classList.add('wrong');
+
+                    const correctBtn = document.getElementById(`btn-${qData.correct}`);
+                    correctBtn.classList.add('correct');
+
+                    setTimeout(() => {
+                        let wonAmount = "$0";
+                        for (let i = currentQuestionIndex; i >= 0; i--) {
+                            if (PRIZE_LADDER[i].guaranteed) {
+                                wonAmount = PRIZE_LADDER[i].amount;
+                                break;
+                            }
+                        }
+                        endGame(false, wonAmount);
+                    }, 2000);
+                }
+            }, 1200);
+        }
+
+        function walkAway() {
+            let wonAmount = "$0";
+            if (currentQuestionIndex > 0) {
+                wonAmount = PRIZE_LADDER[currentQuestionIndex - 1].amount;
+            }
+            endGame(false, wonAmount, "Te retiraste del juego con:");
+        }
+
+        function use5050() {
+            if (usedLifelines['5050'] || !canAnswer) return;
+            usedLifelines['5050'] = true;
+            document.getElementById('lifeline-5050').disabled = true;
+
+            const qData = selectedQuestions[currentQuestionIndex];
+            const incorrects = ['A', 'B', 'C', 'D'].filter(l => l !== qData.correct);
+            
+            const toDisable = incorrects.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+            toDisable.forEach(letter => {
+                const btn = document.getElementById(`btn-${letter}`);
+                btn.disabled = true;
+                btn.classList.add('disabled-5050');
+            });
+
+            playSound('select');
+        }
+
+        function usePhone() {
+            if (usedLifelines['phone'] || !canAnswer) return;
+            usedLifelines['phone'] = true;
+            document.getElementById('lifeline-phone').disabled = true;
+
+            const qData = selectedQuestions[currentQuestionIndex];
+            
+            document.getElementById('modal-title').innerText = "📞 Llamada al Profesor de Inglés";
+            document.getElementById('modal-body').innerHTML = `
+                <p class="font-bold text-amber-400">"¡Hola! Déjame darte una pista:"</p>
+                <p class="mt-2">"Estoy seguro de que la respuesta correcta es la opción <strong>${qData.correct}: ${qData.options[qData.correct]}</strong>."</p>
+                <p class="text-xs text-slate-400 mt-2">💡 Explicación: ${qData.explanation}</p>
+            `;
+
+            document.getElementById('lifeline-modal').classList.remove('hidden');
+            playSound('select');
+        }
+
+        function useAudience() {
+            if (usedLifelines['audience'] || !canAnswer) return;
+            usedLifelines['audience'] = true;
+            document.getElementById('lifeline-audience').disabled = true;
+
+            const qData = selectedQuestions[currentQuestionIndex];
+            
+            let pCorrect = Math.floor(Math.random() * 20) + 65;
+            let remaining = 100 - pCorrect;
+            
+            let p1 = Math.floor(Math.random() * remaining);
+            let p2 = Math.floor(Math.random() * (remaining - p1));
+            let p3 = remaining - p1 - p2;
+
+            const percentMap = {};
+            const incorrects = ['A', 'B', 'C', 'D'].filter(l => l !== qData.correct);
+            
+            percentMap[qData.correct] = pCorrect;
+            percentMap[incorrects[0]] = p1;
+            percentMap[incorrects[1]] = p2;
+            percentMap[incorrects[2]] = p3;
+
+            let html = '<p class="font-bold text-amber-400 mb-3">Resultados de la Votación del Público:</p>';
+            ['A', 'B', 'C', 'D'].forEach(letter => {
+                html += `
+                    <div class="space-y-1 my-2">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span>Opción ${letter}: ${qData.options[letter]}</span>
+                            <span>${percentMap[letter]}%</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                            <div class="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full" style="width: ${percentMap[letter]}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('modal-title').innerText = "📊 Votación del Público";
+            document.getElementById('modal-body').innerHTML = html;
+            document.getElementById('lifeline-modal').classList.remove('hidden');
+            playSound('select');
+        }
+
+        function closeModal() {
+            document.getElementById('lifeline-modal').classList.add('hidden');
+        }
+
+        function endGame(isWin, prize, customSubtitle = null) {
+            const modal = document.getElementById('game-over-modal');
+            const title = document.getElementById('end-title');
+            const subtitle = document.getElementById('end-subtitle');
+            const finalPrize = document.getElementById('final-prize');
+            const icon = document.getElementById('end-icon');
+
+            if (isWin) {
+                icon.innerText = "🏆";
+                title.innerText = "¡FELICIDADES, MILLONARIO!";
+                subtitle.innerText = "¡Has respondido acertadamente las 25 preguntas del examen de repaso!";
+            } else {
+                icon.innerText = "🎮";
+                title.innerText = "JUEGO TERMINADO";
+                subtitle.innerText = customSubtitle || "¡Buen intento! Repasa las preguntas falladas y vuelve a intentarlo.";
+            }
+
+            finalPrize.innerText = prize;
+            modal.classList.remove('hidden');
+        }
+
+        function restartGame() {
+            document.getElementById('game-over-modal').classList.add('hidden');
+            initGame();
+        }
+
+        window.onload = function() {
+            initGame();
+        };
+    </script>
+</body>
+</html>
